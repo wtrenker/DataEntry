@@ -1,0 +1,11 @@
+{% extends "Base.jinja2" %}
+{% block content %}
+    <h1>There are no Held readings.</h1>
+    <a href="{{ url_for('home') }}">Home</a>
+{#<form action = {{ url_for("home") }} method="post">#}
+{#    {{ form.ddate.label }} {{ form.ddate(id="datepicker", autocomplete="off" ) }}#}
+{#    {{ form.amreading.label }} {{ form.amreading }}#}
+{#    {{ form.pmreading.label }} {{ form.pmreading }}#}
+{#    {{ form.annotation.label }} {{ form.annotation(size=50) }}#}
+{#</form>#}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "Base.jinja2" %}
+{% block content %}
+
+{#      {% for message in form.name.errors %}#}
+{#         <div>{{ message }}</div>#}
+{#      {% endfor %}#}
+{##}
+{#      {% for message in form.email.errors %}#}
+{#         <div>{{ message }}</div>#}
+{#      {% endfor %}#}
+
+      <form action = {{ url_for("edit") }} method="post">
+            <div>
+               {{ form.helddateslist.label }}<br>
+               {{ form.helddateslist }}
+               <br>
+               {{ form.submit }}
+            </div>
+        </form>
+{% endblock %}

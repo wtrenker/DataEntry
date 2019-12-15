@@ -1,0 +1,10 @@
+{% extends "Base.jinja2" %}
+{% block content %}
+<form action = {{ url_for("update") }} method="post">
+    Date: {{ form.readingDate }}
+    AM Reading: {{ form.amreading }}
+    {{ form.pmreading.label }} {{ form.pmreading }}
+    Annotation: {{ form.annotation }}
+    {{ form.submit }}
+</form>
+{% endblock %}
