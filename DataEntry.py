@@ -130,7 +130,6 @@ def update():
     evening = form.data['pmreading']
     if evening is None:
         return render_template('NoEvening.jinja2', **locals())
-        # return 'Evening is not entered'
     with db_session:
         reading = Readings[WorkingDate]
         morning = reading.hold
