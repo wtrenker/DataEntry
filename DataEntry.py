@@ -73,7 +73,6 @@ def enter():
         try:
             with db_session:
                 Readings(date = reqdate, average = average, comment = comment, hold = hold)
-        # except pony.orm.core.TransactionIntegrityError as e:
         except Exception as e:
             flash(f'ERROR (DataEnbry.py:64): {e}')
         return render_template('EnterReading.jinja2', **locals())
