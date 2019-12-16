@@ -5,15 +5,7 @@
     <h2><a href="{{ url_for('enter') }}">Enter a new Reading</a></h2>
 
     {% if numberOfHeldReadings > 0 %}
-         <h2><a href="{{ url_for('select') }}">Select and Complete a Held Reading</a></h2>
+         <h2><a href="{{ url_for('select') }}">Select and Complete a Partial Reading</a></h2>
     {% endif %}
 
-{#<form action = {{ url_for("home") }} method="post">#}
-{#    {{ form.ddate.label }} {{ form.ddate(id="datepicker", autocomplete="off" ) }}#}
-{#    {{ form.amreading.label }} {{ form.amreading }}#}
-{#    {{ form.pmreading.label }} {{ form.pmreading }}#}
-{#    {{ form.annotation.label }} {{ form.annotation(size=50) }}#}
-{#</form>#}
 {% endblock %}
-
-{#<form action = "{{ url_for('edit') }}" method="post">#}

@@ -42,11 +42,11 @@ def home():
     with db_session:
         numberOfHeldReadings = len(Readings.select(lambda c: c.hold is not None))
         if numberOfHeldReadings == 0:
-            flash('There are no held readings.')
+            flash('There are no partial readings.')
         elif numberOfHeldReadings == 1:
-            flash('There is one held reading.')
+            flash('There is one partial reading.')
         else:
-            flash(f'There are {numberOfHeldReadings} held readings.')
+            flash(f'There are {numberOfHeldReadings} partial readings.')
     return render_template('Home.jinja2', **locals())
 
 @app.route("/enter", methods=['GET', 'POST'])
