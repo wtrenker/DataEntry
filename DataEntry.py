@@ -8,8 +8,8 @@ import pony
 import pprint
 import logging
 from logging.handlers import RotatingFileHandler
-from forms import DataEntryForm, SelectReadingForm, EditReadingForm
-from functions import decimalAverage
+from forms import DataEntryForm, SelectReadingForm, EditReadingForm, SigninForm
+from GeneralFunctions import decimalAverage, verify_password
 from collections import namedtuple
 
 # App config.
@@ -23,7 +23,7 @@ def methodNotAllowed(e):
     f = request.full_path.split('?', 1)[0]
     return render_template('405.jinja2', **locals()), 405
 
-dbFile = "/home/bill/glucose2/glucose.db"
+dbFile = "/home/bill/glucose2/glucosetest.db"
 dbPath = Path(dbFile)
 db = Database()
 
@@ -33,11 +33,41 @@ class Readings(db.Entity):
     comment = Optional(str)
     hold = Optional(float)
 
+class Info(db.Entity):
+    name = PrimaryKey(str)
+    value = Optional(str)
+
 db.bind(provider='sqlite', filename=str(dbPath), create_db=False)
 db.generate_mapping(create_tables=False)
 
 @app.route("/", methods=['GET'])
 def home():
+    session['codeok'] = False
+    return render_template('Home.jinja2', **locals())
+
+@app.route("/signin", methods=['GET', 'POST'])
+def signin():
+    if request.method == 'GET':
+        flash(dbPath)
+        form = SigninForm(request.form)
+        return render_template('Signin.jinja2', **locals())
+    else:
+        form = SigninForm(request.form)
+        typedcode = form.data['code']
+        with db_session:
+            savedcode = Info['code'].value
+        codeok = verify_password(savedcode, typedcode)
+        session['codeok'] = codeok
+        if codeok:
+            return redirect(url_for('admin'))
+        else:
+            flash('Try Again')
+            return redirect(url_for('signin'))
+
+@app.route("/admin", methods=['GET'])
+def admin():
+    if not(session.get('codeok') and session['codeok']):
+        return redirect(url_for('signin'))
     flash(dbPath)
     with db_session:
         numberOfHeldReadings = len(Readings.select(lambda c: c.hold is not None))
@@ -47,7 +77,8 @@ def home():
             flash('There is one partial reading.')
         else:
             flash(f'There are {numberOfHeldReadings} partial readings.')
-    return render_template('Home.jinja2', **locals())
+    # session['numberOfHeldReadings'] = numberOfHeldReadings
+    return render_template('Admin.jinja2', **locals())
 
 @app.route("/enter", methods=['GET', 'POST'])
 def enter():
@@ -55,6 +86,8 @@ def enter():
     flash(dbPath)
 
     if request.method == 'GET':
+        if not (session.get('codeok') and session['codeok']):
+            return redirect(url_for('signin'))
         form = DataEntryForm(request.form)
         return render_template('EnterReading.jinja2', **locals())
 
@@ -74,8 +107,13 @@ def enter():
             with db_session:
                 Readings(date = reqdate, average = average, comment = comment, hold = hold)
         except Exception as e:
-            flash(f'ERROR (DataEnbry.py:64): {e}')
-        return render_template('EnterReading.jinja2', **locals())
+            if e.find('UNIQUE constraint failed') > -1:
+                flash('ERROR: That date is already entered.')
+            else:
+                flash(f'ERROR: {e}')
+        with db_session:
+            numberOfHeldReadings = len(Readings.select(lambda c: c.hold is not None))
+        return render_template('Admin.jinja2', **locals())
 
     else:
         return "fall through"
@@ -83,9 +121,13 @@ def enter():
 @app.route("/select", methods=['GET'])
 def select():
 
+    if not (session.get('codeok') and session['codeok']):
+        return redirect(url_for('signin'))
+
     flash(dbPath)
 
     with db_session:
+        form = SelectReadingForm(request.form)
         heldReadings = Readings.select(lambda c: c.hold is not None).order_by(1)
         numberOfHeldReadings = len(heldReadings)
         heldReadingsList = list(heldReadings)
@@ -95,7 +137,6 @@ def select():
             for heldReading in heldReadingsList:
                 heldReadingDates.append((f'D{index}', heldReading.date))
                 index += 1
-            form = SelectReadingForm()
             form.helddateslist.choices = heldReadingDates
             session['heldDates'] = heldReadingDates
             return render_template('SelectReading.jinja2', **locals())  # form=heldForm)
@@ -110,7 +151,7 @@ def edit():
     form = SelectReadingForm(request.form)
     FormIndex = form.data['helddateslist']
     heldReadingDates = session['heldDates']
-    # session.pop('heldDates')
+    session.pop('heldDates')
     heldReadingDates = dict(heldReadingDates)
     WorkingDate = heldReadingDates[FormIndex]
     session['WorkingDate'] = WorkingDate
@@ -123,6 +164,10 @@ def edit():
 
 @app.route("/update", methods=['POST'])
 def update():
+
+    if not (session.get('codeok') and session['codeok']):
+        return redirect(url_for('signin'))
+
     WorkingDate = session['WorkingDate']
     session.pop('WorkingDate')
     form = EditReadingForm(request.form)
@@ -135,7 +180,7 @@ def update():
         reading.hold = None
         reading.average = decimalAverage(morning, evening)
         reading.comment = form.data['annotation']
-    return redirect(url_for('home'))
+    return redirect(url_for('admin'))
 
 
 if __name__ == "__main__":

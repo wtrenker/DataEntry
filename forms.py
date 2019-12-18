@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import Form, TextAreaField, DecimalField, validators, StringField, SubmitField, IntegerField, SubmitField,\
-    RadioField, SelectField, TextField
+    RadioField, SelectField, TextField, PasswordField
 
 class DataEntryForm(FlaskForm):
     ddate = StringField('Date:', validators=[validators.DataRequired()])
@@ -31,3 +31,8 @@ class EditReadingForm(FlaskForm):
     pmreading = DecimalField('Evening:')
     annotation = StringField('Annotation')
     submit = SubmitField("Update")
+
+class SigninForm(FlaskForm):
+    code = PasswordField('Code')
+    submit = SubmitField('Continue')
+
